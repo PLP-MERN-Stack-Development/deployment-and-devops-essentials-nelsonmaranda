@@ -1,0 +1,29 @@
+name: Backend CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to Render
+        run: |
+          echo "Deploying to Render..."
+          echo "Render will automatically deploy when you push to main branch"
+          echo "Make sure to connect your GitHub repository to Render"
+
+      - name: Health Check
+        run: |
+          echo "Waiting for deployment to complete..."
+          sleep 30
+          # Add your deployed backend URL here
+          # curl -f https://your-backend-url.onrender.com/health || exit 1
+
