@@ -15,10 +15,12 @@ export const initializeSocket = (token) => {
 
   socket = io(SOCKET_URL, {
     auth: { token },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'], // Prefer polling for Render compatibility
     reconnection: true,
     reconnectionDelay: 1000,
-    reconnectionAttempts: 5
+    reconnectionAttempts: 10,
+    timeout: 20000,
+    forceNew: false
   });
 
   socket.on('connect', () => {

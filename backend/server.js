@@ -23,7 +23,10 @@ const io = socketIo(server, {
     credentials: true,
     allowedHeaders: ['Authorization']
   },
-  transports: ['websocket', 'polling']
+  transports: ['polling', 'websocket'], // Prefer polling for Render compatibility
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 // Middleware
