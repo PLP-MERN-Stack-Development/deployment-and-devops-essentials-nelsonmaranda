@@ -39,8 +39,19 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['Content-Type']
+  exposedHeaders: ['Content-Type'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Explicit OPTIONS handler for Socket.io path
+app.options('/socket.io/*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', cleanFrontendUrl);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(204);
+});
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -71,7 +82,17 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     frontendUrl: cleanFrontendUrl,
     socketIoEnabled: true,
-    activeUsers: activeUsers.size
+    activeUsers: activeUsers.size,
+    corsOrigin: cleanFrontendUrl
+  });
+});
+
+// Socket.io connection test endpoint (for debugging)
+app.get('/socket-test', (req, res) => {
+  res.status(200).json({
+    message: 'Socket.io endpoint should be available at /socket.io/',
+    frontendUrl: cleanFrontendUrl,
+    corsConfigured: true
   });
 });
 
@@ -171,5 +192,8 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 Frontend URL: ${cleanFrontendUrl}`);
+  console.log(`🔌 Socket.io enabled on path: /socket.io/`);
+  console.log(`✅ CORS configured for: ${cleanFrontendUrl}`);
 });
 
