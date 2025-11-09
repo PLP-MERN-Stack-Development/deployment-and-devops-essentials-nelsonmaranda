@@ -11,10 +11,21 @@ router.get('/', protect, async (req, res) => {
     const messages = await Message.find()
       .sort({ timestamp: -1 })
       .limit(limit)
-      .populate('sender', 'username')
+      .populate('sender', 'username _id')
       .lean();
 
-    res.json(messages.reverse());
+    // Format messages consistently with Socket.io message format
+    const formattedMessages = messages.reverse().map(msg => ({
+      _id: msg._id,
+      sender: {
+        _id: msg.sender._id,
+        username: msg.sender.username
+      },
+      content: msg.content,
+      timestamp: msg.timestamp
+    }));
+
+    res.json(formattedMessages);
   } catch (error) {
     console.error('Fetch messages error:', error);
     res.status(500).json({ message: 'Error fetching messages' });

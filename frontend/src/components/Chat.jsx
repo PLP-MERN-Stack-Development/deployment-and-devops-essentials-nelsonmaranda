@@ -57,10 +57,20 @@ function Chat({ user, onLogout }) {
       // New message listener - prevent duplicates by checking message ID
       socketRef.current.on('newMessage', (message) => {
         console.log('💬 New message received:', message);
+        console.log('💬 Message content:', message.content);
+        console.log('💬 Message sender:', message.sender);
+        
         if (!message || !message._id) {
           console.warn('⚠️ Invalid message received:', message);
           return;
         }
+        
+        // Ensure message has required fields
+        if (!message.content) {
+          console.warn('⚠️ Message missing content:', message);
+          return;
+        }
+        
         setMessages(prev => {
           // Check if message already exists to prevent duplicates
           const exists = prev.some(msg => msg._id === message._id);
@@ -68,6 +78,7 @@ function Chat({ user, onLogout }) {
             console.log('⚠️ Duplicate message ignored:', message._id);
             return prev;
           }
+          console.log('✅ Adding message to state:', message);
           return [...prev, message];
         });
       });
@@ -231,10 +242,29 @@ function Chat({ user, onLogout }) {
           )}
         {messages.map((message, index) => {
           // Safely access message properties
-          const senderId = message.sender?._id || message.sender?._id || message.sender;
+          const senderId = message.sender?._id || (typeof message.sender === 'string' ? message.sender : null);
           const senderUsername = message.sender?.username || 'Unknown';
-          const messageContent = message.content || '';
+          
+          // Extract content - handle different message structures
+          let messageContent = '';
+          if (message.content) {
+            messageContent = message.content;
+          } else if (message.text) {
+            messageContent = message.text;
+          } else if (message.message) {
+            messageContent = message.message;
+          }
+          
           const isOwnMessage = senderId === user._id;
+          
+          // Debug logging for empty messages
+          if (!messageContent && message._id) {
+            console.warn('⚠️ Empty message content detected:', {
+              messageId: message._id,
+              message: message,
+              sender: senderUsername
+            });
+          }
           
           return (
             <div
@@ -242,7 +272,9 @@ function Chat({ user, onLogout }) {
               className={`message ${isOwnMessage ? 'own' : ''}`}
             >
               <div className="message-sender">{senderUsername}</div>
-              <div className="message-content">{messageContent || '(empty message)'}</div>
+              <div className="message-content">
+                {messageContent ? messageContent : '(empty message)'}
+              </div>
               <div className="message-time">{message.timestamp ? formatTime(message.timestamp) : ''}</div>
             </div>
           );
