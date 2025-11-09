@@ -135,9 +135,6 @@ function Chat({ user, onLogout }) {
     );
   }
 
-  // Filter out current user from active users list
-  const otherUsers = activeUsers.filter(u => u.id !== user._id && u.username !== user.username);
-
   return (
     <div className="chat-container">
       <div className="chat-header">
